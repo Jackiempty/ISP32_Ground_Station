@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "sdkconfig.h"
+
 #define GPIO_FIRE_1 CONFIG_FIRE_1
 #define GPIO_FIRE_2 CONFIG_FIRE_2
 

@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "bsp.h"
+#include "sdkconfig.h"
 
 // return values
 #define ERR_NONE 0

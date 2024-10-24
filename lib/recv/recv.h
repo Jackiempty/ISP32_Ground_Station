@@ -7,6 +7,7 @@
 // #include "gps.h"
 // #include "imu.h"
 #include "ra01s.h"
+#include "sdkconfig.h"
 
 typedef enum {
   FSM_INIT,
@@ -25,4 +26,4 @@ typedef struct {
   float x, y, z;
 } vector_t;
 
-void recv_task(void*);
+void recv_task();

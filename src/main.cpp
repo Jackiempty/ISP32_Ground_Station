@@ -2,9 +2,15 @@
 #include <InfluxDbClient.h>
 #include <InfluxDbCloud.h>
 
-#include "bsp.h"
-#include "ra01s.h"
-#include "recv.h"
+#include "sdkconfig.h"
+
+extern "C" {
+#include <bsp.h>
+#include <ra01s.h>
+#include <recv.h>
+}
+
+
 
 void setup(){
   Serial.begin(115200);

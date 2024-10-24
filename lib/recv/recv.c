@@ -9,7 +9,7 @@
 
 #define RECV_LEN 255
 
-void recv_task(void* args) {
+void recv_task() {
   uint8_t data[RECV_LEN];
   size_t len;
   uint8_t led_status = 0;
