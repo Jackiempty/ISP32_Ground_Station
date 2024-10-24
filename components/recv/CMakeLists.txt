@@ -1,2 +1,2 @@
-set(component_srcs "recv.c")
-idf_component_register(SRCS "${component_srcs}" PRIV_REQUIRES driver bsp INCLUDE_DIRS ".")
+set(srcs "recv.c")
+idf_component_register(SRCS "${srcs}" PRIV_REQUIRES driver bsp INCLUDE_DIRS ".")
