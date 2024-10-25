@@ -451,7 +451,7 @@ class SX126x {
   uint8_t GetRssiInst();
   void GetRxBufferStatus(uint8_t* payloadLength, uint8_t* rxStartBufferPointer);
   void Wakeup(void);
-  void WaitForIdle(unsigned long timeout, char* text, bool stop);
+  void WaitForIdle(unsigned long timeout, const char* text, bool stop);
   uint8_t ReadBuffer(uint8_t* rxData, uint8_t maxLen);
   void WriteBuffer(uint8_t* txData, uint8_t txDataLen);
   void WriteRegister(uint16_t reg, uint8_t* data, uint8_t numBytes, bool waitForBusy = true);

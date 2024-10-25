@@ -1,6 +1,5 @@
 #include "Arduino.h"
 #include <SPI.h>
-#include <stdbool.h>
 #include "ra01s.h"
 
 
@@ -682,7 +681,7 @@ void SX126x::GetRxBufferStatus(uint8_t *payloadLength, uint8_t *rxStartBufferPoi
 }
 
 
-void SX126x::WaitForIdle(unsigned long timeout, char *text, bool stop)
+void SX126x::WaitForIdle(unsigned long timeout, const char *text, bool stop)
 {
   unsigned long start = millis();
   delayMicroseconds(1);
