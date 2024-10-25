@@ -17,7 +17,8 @@ static int SX126x_RXEN;
 
 void LoRaError(int error) {
   if (debugPrint) {
-    ESP_LOGE(TAG, "LoRaErrorDefault=%d", error);
+    // ESP_LOGE(TAG, "LoRaErrorDefault=%d", error);
+    printf("LoRaErrorDefault=%d\n", error);
   }
   while (true) {
     vTaskDelay(1);
@@ -34,11 +35,16 @@ void LoRaInit(void) {
   devcfg.flags = SPI_DEVICE_NO_DUMMY;
   spi_bus_add_device(LORA_SPI_HOST, &devcfg, &spi_handle);
 
-  ESP_LOGI(TAG, "CONFIG_LORA_NSS_GPIO=%d", CONFIG_LORA_NSS_GPIO);
-  ESP_LOGI(TAG, "CONFIG_RST_GPIO=%d", CONFIG_RST_GPIO);
-  ESP_LOGI(TAG, "CONFIG_BUSY_GPIO=%d", CONFIG_BUSY_GPIO);
-  ESP_LOGI(TAG, "CONFIG_TXEN_GPIO=%d", CONFIG_TXEN_GPIO);
-  ESP_LOGI(TAG, "CONFIG_RXEN_GPIO=%d", CONFIG_RXEN_GPIO);
+  // ESP_LOGI(TAG, "CONFIG_LORA_NSS_GPIO=%d", CONFIG_LORA_NSS_GPIO);
+  // ESP_LOGI(TAG, "CONFIG_RST_GPIO=%d", CONFIG_RST_GPIO);
+  // ESP_LOGI(TAG, "CONFIG_BUSY_GPIO=%d", CONFIG_BUSY_GPIO);
+  // ESP_LOGI(TAG, "CONFIG_TXEN_GPIO=%d", CONFIG_TXEN_GPIO);
+  // ESP_LOGI(TAG, "CONFIG_RXEN_GPIO=%d", CONFIG_RXEN_GPIO);
+  printf("CONFIG_LORA_NSS_GPIO=%d\n", CONFIG_LORA_NSS_GPIO);
+  printf("CONFIG_RST_GPIO=%d\n", CONFIG_RST_GPIO);
+  printf("CONFIG_BUSY_GPIO=%d\n", CONFIG_BUSY_GPIO);
+  printf("CONFIG_TXEN_GPIO=%d\n", CONFIG_TXEN_GPIO);
+  printf("CONFIG_RXEN_GPIO=%d\n", CONFIG_RXEN_GPIO);
 
   SX126x_SPI_SELECT = CONFIG_LORA_NSS_GPIO;
   SX126x_RESET = CONFIG_RST_GPIO;
@@ -112,22 +118,27 @@ int16_t LoRaBegin(uint32_t frequencyInHz, int8_t txPowerInDbm, float tcxoVoltage
   if (txPowerInDbm < -3) txPowerInDbm = -3;
 
   Reset();
-  ESP_LOGI(TAG, "Reset");
+  // ESP_LOGI(TAG, "Reset");
+  printf("Reset\n");
 
   uint8_t wk[2];
   ReadRegister(SX126X_REG_LORA_SYNC_WORD_MSB, wk, 2);  // 0x0740
   uint16_t syncWord = (wk[0] << 8) + wk[1];
-  ESP_LOGI(TAG, "syncWord=0x%x", syncWord);
+  // ESP_LOGI(TAG, "syncWord=0x%x", syncWord);
+  printf("syncWord=0x%x\n", syncWord);
   if (syncWord != SX126X_SYNC_WORD_PUBLIC && syncWord != SX126X_SYNC_WORD_PRIVATE) {
-    ESP_LOGE(TAG, "SX126x error, maybe no SPI connection");
+    // ESP_LOGE(TAG, "SX126x error, maybe no SPI connection");
+    printf("SX126x error, maybe no SPI connection\n");
     return ERR_INVALID_MODE;
   }
 
-  ESP_LOGI(TAG, "SX126x installed");
+  // ESP_LOGI(TAG, "SX126x installed");
+  printf("SX126x installed\n");
   SetStandby(SX126X_STANDBY_RC);
 
   SetDio2AsRfSwitchCtrl(true);
-  ESP_LOGI(TAG, "tcxoVoltage=%f", tcxoVoltage);
+  //ESP_LOGI(TAG, "tcxoVoltage=%f", tcxoVoltage);
+  printf("tcxoVoltage=%f\n", tcxoVoltage);
   // set TCXO control, if requested
   if (tcxoVoltage > 0.0) {
     SetDio3AsTcxoCtrl(tcxoVoltage, RADIO_TCXO_SETUP_TIME);  // Configure the radio to use a TCXO controlled by DIO3
@@ -136,7 +147,8 @@ int16_t LoRaBegin(uint32_t frequencyInHz, int8_t txPowerInDbm, float tcxoVoltage
   Calibrate(SX126X_CALIBRATE_IMAGE_ON | SX126X_CALIBRATE_ADC_BULK_P_ON | SX126X_CALIBRATE_ADC_BULK_N_ON | SX126X_CALIBRATE_ADC_PULSE_ON |
             SX126X_CALIBRATE_PLL_ON | SX126X_CALIBRATE_RC13M_ON | SX126X_CALIBRATE_RC64K_ON);
 
-  ESP_LOGI(TAG, "useRegulatorLDO=%d", useRegulatorLDO);
+  // ESP_LOGI(TAG, "useRegulatorLDO=%d", useRegulatorLDO);
+  printf("useRegulatorLDO=%d\n", useRegulatorLDO);
   if (useRegulatorLDO) {
     SetRegulatorMode(SX126X_REGULATOR_LDO);  // set regulator mode: LDO
   } else {
@@ -265,12 +277,12 @@ bool LoRaSend(uint8_t *pData, uint8_t len, uint8_t mode) {
         irqStatus = GetIrqStatus();
       }
       if (debugPrint) {
-        ESP_LOGI(TAG, "irqStatus=0x%x", irqStatus);
+        printf("irqStatus=0x%x\n", irqStatus);
         if (irqStatus & SX126X_IRQ_TX_DONE) {
-          ESP_LOGI(TAG, "SX126X_IRQ_TX_DONE");
+          printf("SX126X_IRQ_TX_DONE\n");
         }
         if (irqStatus & SX126X_IRQ_TIMEOUT) {
-          ESP_LOGI(TAG, "SX126X_IRQ_TIMEOUT");
+          printf("SX126X_IRQ_TIMEOUT\n");
         }
       }
       txActive = false;
@@ -285,7 +297,7 @@ bool LoRaSend(uint8_t *pData, uint8_t len, uint8_t mode) {
     }
   }
   if (debugPrint) {
-    ESP_LOGI(TAG, "Send rv=0x%x", rv);
+    printf("Send rv=0x%x\n", rv);
   }
   return rv;
 }
@@ -484,7 +496,7 @@ void SetDioIrqParams(uint16_t irqMask, uint16_t dio1Mask, uint16_t dio2Mask, uin
 }
 
 void SetStopRxTimerOnPreambleDetect(bool enable) {
-  ESP_LOGI(TAG, "SetStopRxTimerOnPreambleDetect enable=%d", enable);
+  printf("SetStopRxTimerOnPreambleDetect enable=%d\n", enable);
   // uint8_t data = (uint8_t)enable;
   uint8_t data = 0;
   if (enable) data = 1;
@@ -544,7 +556,7 @@ void ClearIrqStatus(uint16_t irq) {
 
 void SetRx(uint32_t timeout) {
   if (debugPrint) {
-    ESP_LOGI(TAG, "----- SetRx timeout=%" PRIu32, timeout);
+    printf("----- SetRx timeout=%" PRIu32, timeout);
   }
   SetStandby(SX126X_STANDBY_RC);
   SetRxEnable();
@@ -559,14 +571,14 @@ void SetRx(uint32_t timeout) {
     delay(1);
   }
   if ((GetStatus() & 0x70) != 0x50) {
-    ESP_LOGE(TAG, "SetRx Illegal Status");
+    printf("SetRx Illegal Status\n");
     LoRaError(ERR_INVALID_SETRX_STATE);
   }
 }
 
 void SetRxEnable(void) {
   if (debugPrint) {
-    ESP_LOGI(TAG, "SetRxEnable:SX126x_TXEN=%d SX126x_RXEN=%d", SX126x_TXEN, SX126x_RXEN);
+    printf("SetRxEnable:SX126x_TXEN=%d SX126x_RXEN=%d\n", SX126x_TXEN, SX126x_RXEN);
   }
   if ((SX126x_TXEN != -1) && (SX126x_RXEN != -1)) {
     gpio_set_level(SX126x_RXEN, HIGH);
@@ -576,7 +588,7 @@ void SetRxEnable(void) {
 
 void SetTx(uint32_t timeoutInMs) {
   if (debugPrint) {
-    ESP_LOGI(TAG, "----- SetTx timeoutInMs=%" PRIu32, timeoutInMs);
+    // printf("----- SetTx timeoutInMs=%" PRIu32, timeoutInMs);
   }
   SetStandby(SX126X_STANDBY_RC);
   SetTxEnable();
@@ -587,7 +599,7 @@ void SetTx(uint32_t timeoutInMs) {
     tout = (uint32_t)(timeoutInUs / 0.015625);
   }
   if (debugPrint) {
-    ESP_LOGI(TAG, "SetTx timeoutInMs=%" PRIu32 " tout=%" PRIu32, timeoutInMs, tout);
+    // printf("SetTx timeoutInMs=%" PRIu32 " tout=%" PRIu32, timeoutInMs, tout);
   }
   buf[0] = (uint8_t)((tout >> 16) & 0xFF);
   buf[1] = (uint8_t)((tout >> 8) & 0xFF);
@@ -599,14 +611,14 @@ void SetTx(uint32_t timeoutInMs) {
     delay(1);
   }
   if ((GetStatus() & 0x70) != 0x60) {
-    ESP_LOGE(TAG, "SetTx Illegal Status");
+    printf("SetTx Illegal Status\n");
     LoRaError(ERR_INVALID_SETTX_STATE);
   }
 }
 
 void SetTxEnable(void) {
   if (debugPrint) {
-    ESP_LOGI(TAG, "SetTxEnable:SX126x_TXEN=%d SX126x_RXEN=%d", SX126x_TXEN, SX126x_RXEN);
+    printf("SetTxEnable:SX126x_TXEN=%d SX126x_RXEN=%d\n", SX126x_TXEN, SX126x_RXEN);
   }
   if ((SX126x_TXEN != -1) && (SX126x_RXEN != -1)) {
     gpio_set_level(SX126x_RXEN, LOW);
@@ -631,7 +643,7 @@ void WaitForIdle(unsigned long timeout) {
   TickType_t start = xTaskGetTickCount();
   while (gpio_get_level(SX126x_BUSY)) {
     if (xTaskGetTickCount() - start > (timeout / portTICK_PERIOD_MS)) {
-      ESP_LOGE(TAG, "WaitForIdle Timeout timeout=%lu", timeout);
+      printf("WaitForIdle Timeout timeout=%lu\n", timeout);
       LoRaError(ERR_IDLE_TIMEOUT);
       return;
     }
@@ -643,7 +655,7 @@ uint8_t ReadBuffer(uint8_t *rxData, uint8_t maxLen) {
   uint8_t payloadLength = 0;
   GetRxBufferStatus(&payloadLength, &offset);
   if (payloadLength > maxLen) {
-    ESP_LOGW(TAG, "ReadBuffer maxLen too small");
+    printf("ReadBuffer maxLen too small\n");
     return 0;
   }
 
@@ -694,7 +706,7 @@ void WriteRegister(uint16_t reg, uint8_t *data, uint8_t numBytes) {
   WaitForIdle(BUSY_WAIT);
 
   if (debugPrint) {
-    ESP_LOGI(TAG, "WriteRegister: REG=0x%02x", reg);
+    printf("WriteRegister: REG=0x%02x\n", reg);
   }
   // start transfer
   gpio_set_level(SX126x_SPI_SELECT, LOW);
@@ -708,7 +720,7 @@ void WriteRegister(uint16_t reg, uint8_t *data, uint8_t numBytes) {
     uint8_t in = spi_transfer(data[n]);
     (void)in;
     if (debugPrint) {
-      ESP_LOGI(TAG, "%02x --> %02x", data[n], in);
+      printf("%02x --> %02x\n", data[n], in);
       // ESP_LOGI(TAG, "DataOut:%02x ", data[n]);
     }
   }
@@ -730,7 +742,7 @@ void ReadRegister(uint16_t reg, uint8_t *data, uint8_t numBytes) {
   WaitForIdle(BUSY_WAIT);
 
   if (debugPrint) {
-    ESP_LOGI(TAG, "ReadRegister: REG=0x%02x", reg);
+    printf("ReadRegister: REG=0x%02x\n", reg);
   }
 
   // start transfer
@@ -745,7 +757,7 @@ void ReadRegister(uint16_t reg, uint8_t *data, uint8_t numBytes) {
   for (uint8_t n = 0; n < numBytes; n++) {
     data[n] = spi_transfer(SX126X_CMD_NOP);
     if (debugPrint) {
-      ESP_LOGI(TAG, "DataIn:%02x ", data[n]);
+      printf("DataIn:%02x \n", data[n]);
     }
   }
 
@@ -766,12 +778,12 @@ void WriteCommand(uint8_t cmd, uint8_t *data, uint8_t numBytes) {
   uint8_t status;
   for (int retry = 1; retry < 10; retry++) {
     status = WriteCommand2(cmd, data, numBytes);
-    ESP_LOGD(TAG, "status=%02x", status);
+    printf("status=%02x\n", status);
     if (status == 0) break;
-    ESP_LOGW(TAG, "WriteCommand2 status=%02x retry=%d", status, retry);
+    printf("WriteCommand2 status=%02x retry=%d\n", status, retry);
   }
   if (status != 0) {
-    ESP_LOGE(TAG, "SPI Transaction error:0x%02x", status);
+    printf("SPI Transaction error:0x%02x\n", status);
     LoRaError(ERR_SPI_TRANSACTION);
   }
 }
@@ -785,7 +797,7 @@ uint8_t WriteCommand2(uint8_t cmd, uint8_t *data, uint8_t numBytes) {
 
   // send command byte
   if (debugPrint) {
-    ESP_LOGI(TAG, "WriteCommand: CMD=0x%02x", cmd);
+    printf("WriteCommand: CMD=0x%02x\n", cmd);
   }
   spi_transfer(cmd);
 
@@ -796,7 +808,7 @@ uint8_t WriteCommand2(uint8_t cmd, uint8_t *data, uint8_t numBytes) {
   for (uint8_t n = 0; n < numBytes; n++) {
     uint8_t in = spi_transfer(data[n]);
     if (debugPrint) {
-      ESP_LOGI(TAG, "%02x --> %02x", data[n], in);
+      printf("%02x --> %02x", data[n], in);
     }
 
     // check status
@@ -823,7 +835,7 @@ uint8_t WriteCommand2(uint8_t cmd, uint8_t *data, uint8_t numBytes) {
 
 #if 0
 	if (status != 0) {
-		ESP_LOGE(TAG, "SPI Transaction error:0x%02x", status);
+		printf("SPI Transaction error:0x%02x", status);
 		LoRaError(ERR_SPI_TRANSACTION);
 	}
 #endif
@@ -839,7 +851,7 @@ void ReadCommand(uint8_t cmd, uint8_t *data, uint8_t numBytes) {
 
   // send command byte
   if (debugPrint) {
-    ESP_LOGI(TAG, "ReadCommand: CMD=0x%02x", cmd);
+    printf("ReadCommand: CMD=0x%02x\n", cmd);
   }
   spi_transfer(cmd);
 
@@ -847,7 +859,7 @@ void ReadCommand(uint8_t cmd, uint8_t *data, uint8_t numBytes) {
   for (uint8_t n = 0; n < numBytes; n++) {
     data[n] = spi_transfer(SX126X_CMD_NOP);
     if (debugPrint) {
-      ESP_LOGI(TAG, "DataIn:%02x", data[n]);
+      printf("DataIn:%02x\n", data[n]);
     }
   }
 
@@ -871,9 +883,9 @@ void lora_init() {
 
   LoRaInit();
   int ret = LoRaBegin(frequencyInHz, txPowerInDbm, tcxoVoltage, useRegulatorLDO);
-  ESP_LOGI(TAG, "LoRaBegin=%d", ret);
+  printf("LoRaBegin=%d\n", ret);
   if (ret != 0) {
-    ESP_LOGE(pcTaskGetName(NULL), "Does not recognize the module");
+    printf(pcTaskGetName(NULL), "Does not recognize the module\n");
   }
 
   uint8_t spreadingFactor = 7;

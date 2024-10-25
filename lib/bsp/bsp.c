@@ -49,7 +49,7 @@ void uart_init() {
       .parity = UART_PARITY_DISABLE,
       .stop_bits = UART_STOP_BITS_1,
       .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-      .source_clk = UART_SCLK_DEFAULT,
+      .source_clk = 4,
   };
   if (uart_driver_install(GPS_UART_NUM, 256, 0, 20, &uart_queue, 0) != ESP_OK) printf("UART install failed\n");
   if (uart_param_config(GPS_UART_NUM, &uart_config) != ESP_OK) printf("UART param failed\n");
@@ -71,10 +71,12 @@ void spi_init(spi_host_device_t device, uint32_t mosi, uint32_t miso, uint32_t s
   };
   ret = spi_bus_initialize(device, &spi_bus_config, SPI_DMA_CH_AUTO);
   if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to initialize bus.");
+    // ESP_LOGE(TAG, "Failed to initialize bus.");
+    printf("Failed to initialize bus.\n");
     return;
   }
-  ESP_LOGI(TAG, "SPI%d_HOST spi_bus_initialize=%d", device + 1, ret);
+  // ESP_LOGI(TAG, "SPI%d_HOST spi_bus_initialize=%d", device + 1, ret);
+  printf("SPI%d_HOST spi_bus_initialize=%d\n", device + 1, ret);
 }
 
 esp_err_t sd_init() {
