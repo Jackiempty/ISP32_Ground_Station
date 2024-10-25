@@ -9,7 +9,7 @@
 
 #define RECV_LEN 255
 
-void recv_task() {
+void recv_task(SX126x *lora) {
   uint8_t data[RECV_LEN];
   size_t len;
   uint8_t led_status = 0;
@@ -25,8 +25,10 @@ void recv_task() {
   float gps_altitude;
   float heading, pitch, roll;
 
+  pinMode(1, OUTPUT);
+
   for (;;) {
-    if ((len = LoRaReceive(&data[0], RECV_LEN)) > 0) {
+    if ((len = lora->Receive(&data[0], RECV_LEN)) > 0) {
       uint8_t* logger_ptr = data;
 
       memcpy(&state, logger_ptr, sizeof(fsm_state_e));
@@ -83,7 +85,7 @@ void recv_task() {
                gyro.x, gyro.y, gyro.z,
                roll, pitch, heading);
 
-        gpio_set_level(CONFIG_INDI_LED, led_status);
+        digitalWrite(1, led_status);
         led_status = !led_status;
       }
     }

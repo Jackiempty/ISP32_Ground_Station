@@ -1,13 +1,6 @@
-
-#include <esp_log.h>
 #include <stdint.h>
-
-// #include "bmp280.h"
-// #include "fsm.h"
-// #include "gps.h"
-// #include "imu.h"
+#include "Arduino.h"
 #include "ra01s.h"
-#include "sdkconfig.h"
 
 typedef enum {
   FSM_INIT,
@@ -26,4 +19,4 @@ typedef struct {
   float x, y, z;
 } vector_t;
 
-void recv_task();
+void recv_task(SX126x*);

@@ -3,22 +3,36 @@
 
 /*
   source: https://github.com/nopnop2002/Arduino-LoRa-Ra01S/tree/main
-  modified by willic
 */
 
-#include <driver/gpio.h>
-#include <driver/spi_master.h>
-#include <esp_log.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <inttypes.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#define RF_FREQUENCY                                433000000 // Hz  center frequency
+//#define RF_FREQUENCY                                866000000 // Hz  center frequency
+//#define RF_FREQUENCY                                915000000 // Hz  center frequency
+#define TX_OUTPUT_POWER                             22        // dBm tx output power
+#define LORA_BANDWIDTH                              4         // bandwidth
+                                                              // 2: 31.25Khz
+                                                              // 3: 62.5Khz
+                                                              // 4: 125Khz
+                                                              // 5: 250KHZ
+                                                              // 6: 500Khz 
+#define LORA_SPREADING_FACTOR                       7         // spreading factor [SF5..SF12]
+#define LORA_CODINGRATE                             1         // [1: 4/5,
+                                                              //  2: 4/6,
+                                                              //  3: 4/7,
+                                                              //  4: 4/8]
 
-#include "bsp.h"
-#include "sdkconfig.h"
+#define LORA_PREAMBLE_LENGTH                        8         // Same for Tx and Rx
+#define LORA_PAYLOADLENGTH                          0         // 0: Variable length packet (explicit header)
+                                                              // 1..255  Fixed length packet (implicit header)
+
+#define CONFIG_LORA_MOSI_GPIO 35
+#define CONFIG_LORA_MISO_GPIO 37
+#define CONFIG_LORA_SCK_GPIO 36
+#define CONFIG_LORA_NSS_GPIO 21
+#define CONFIG_RST_GPIO 41
+#define CONFIG_BUSY_GPIO 40
+#define CONFIG_TXEN_GPIO 0
+#define CONFIG_RXEN_GPIO 0
 
 // return values
 #define ERR_NONE 0
@@ -48,9 +62,6 @@
 #define XTAL_FREQ (double)32000000
 #define FREQ_DIV (double)pow(2.0, 25.0)
 #define FREQ_STEP (double)(XTAL_FREQ / FREQ_DIV)
-
-#define LOW 0
-#define HIGH 1
 #define BUSY_WAIT 5000
 
 // SX126X Model
@@ -162,9 +173,9 @@
 // SX126X SPI command variables
 // SX126X_CMD_SET_SLEEP
 #define SX126X_SLEEP_START_COLD 0b00000000  //  2     2     sleep mode: cold start, configuration is lost (default)
-#define SX126X_SLEEP_START_WARM 0b00000100  //  2     2     warm start, configuration is retained
+#define SX126X_SLEEP_START_WARM 0b00000100  //  2     2                 warm start, configuration is retained
 #define SX126X_SLEEP_RTC_OFF 0b00000000     //  0     0     wake on RTC timeout: disabled
-#define SX126X_SLEEP_RTC_ON 0b00000001      //  0     0     enabled
+#define SX126X_SLEEP_RTC_ON 0b00000001      //  0     0                          enabled
 
 // SX126X_CMD_SET_STANDBY
 #define SX126X_STANDBY_RC 0x00    //  7     0     standby mode: 13 MHz RC oscillator
@@ -217,8 +228,8 @@
 
 // SX126X_CMD_SET_RX_TX_FALLBACK_MODE
 #define SX126X_RX_TX_FALLBACK_MODE_FS 0x40          //  7     0     after Rx/Tx go to: FS mode
-#define SX126X_RX_TX_FALLBACK_MODE_STDBY_XOSC 0x30  //  7     0     standby with crystal oscillator
-#define SX126X_RX_TX_FALLBACK_MODE_STDBY_RC 0x20    //  7     0     standby with RC oscillator (default)
+#define SX126X_RX_TX_FALLBACK_MODE_STDBY_XOSC 0x30  //  7     0                        standby with crystal oscillator
+#define SX126X_RX_TX_FALLBACK_MODE_STDBY_RC 0x20    //  7     0                        standby with RC oscillator (default)
 
 // SX126X_CMD_SET_DIO_IRQ_PARAMS
 #define SX126X_IRQ_TIMEOUT 0b1000000000            //  9     9     Rx or Tx timeout
@@ -385,66 +396,69 @@
 #define SX126x_TXMODE_SYNC 0x02
 #define SX126x_TXMODE_BACK2RX 0x04
 
-// Public function
-void LoRaInit(void);
-int16_t LoRaBegin(uint32_t frequencyInHz, int8_t txPowerInDbm, float tcxoVoltage, bool useRegulatorLDO);
-void LoRaConfig(uint8_t spreadingFactor, uint8_t bandwidth, uint8_t codingRate, uint16_t preambleLength, uint8_t payloadLen, bool crcOn,
-                bool invertIrq);
-uint8_t LoRaReceive(uint8_t* pData, uint16_t len);
-bool LoRaSend(uint8_t* pData, uint8_t len, uint8_t mode);
-void LoRaDebugPrint(bool enable);
+// common low-level SPI interface
+class SX126x {
+ public:
+  SX126x(int spiSelect, int reset, int busy, int txen = -1, int rxen = -1);
 
-// Private function
-bool spi_write_byte(uint8_t* Dataout, size_t DataLength);
-bool spi_read_byte(uint8_t* Datain, uint8_t* Dataout, size_t DataLength);
-uint8_t spi_transfer(uint8_t address);
+  int16_t begin(uint32_t frequencyInHz, int8_t txPowerInDbm, float tcxoVoltage = 0.0, bool useRegulatorLDO = false);
+  void LoRaConfig(uint8_t spreadingFactor, uint8_t bandwidth, uint8_t codingRate, uint16_t preambleLength, uint8_t payloadLen, bool crcOn,
+                  bool invertIrq);
+  uint8_t Receive(uint8_t* pData, uint16_t len);
+  bool Send(uint8_t* pData, uint8_t len, uint8_t mode);
+  bool ReceiveMode(void);
+  void GetPacketStatus(int8_t* rssiPacket, int8_t* snrPacket);
+  void SetTxPower(int8_t txPowerInDbm);
+  uint32_t GetRandomNumber(void);
+  void DebugPrint(bool enable);
 
-bool ReceiveMode(void);
-void GetPacketStatus(int8_t* rssiPacket, int8_t* snrPacket);
-void SetTxPower(int8_t txPowerInDbm);
+ private:
+  uint8_t PacketParams[6] = {0};
+  bool txActive;
+  bool debugPrint;
+  int SX126x_SPI_SELECT;
+  int SX126x_RESET;
+  int SX126x_BUSY;
+  int SX126x_TXEN;
+  int SX126x_RXEN;
 
-void FixInvertedIQ(uint8_t iqConfig);
-void SetDio3AsTcxoCtrl(float voltage, uint32_t delay);
-void SetDio2AsRfSwitchCtrl(uint8_t enable);
-void Reset(void);
-void SetStandby(uint8_t mode);
-void SetRfFrequency(uint32_t frequency);
-void Calibrate(uint8_t calibParam);
-void CalibrateImage(uint32_t frequency);
-void SetRegulatorMode(uint8_t mode);
-void SetBufferBaseAddress(uint8_t txBaseAddress, uint8_t rxBaseAddress);
-void SetPowerConfig(int8_t power, uint8_t rampTime);
-void SetOvercurrentProtection(float currentLimit);
-void SetSyncWord(int16_t sync);
-void SetPaConfig(uint8_t paDutyCycle, uint8_t hpMax, uint8_t deviceSel, uint8_t paLut);
-void SetDioIrqParams(uint16_t irqMask, uint16_t dio1Mask, uint16_t dio2Mask, uint16_t dio3Mask);
-void SetStopRxTimerOnPreambleDetect(bool enable);
-void SetLoRaSymbNumTimeout(uint8_t SymbNum);
-void SetPacketType(uint8_t packetType);
-void SetModulationParams(uint8_t spreadingFactor, uint8_t bandwidth, uint8_t codingRate, uint8_t lowDataRateOptimize);
-void SetCadParams(uint8_t cadSymbolNum, uint8_t cadDetPeak, uint8_t cadDetMin, uint8_t cadExitMode, uint32_t cadTimeout);
-void SetCad();
-uint8_t GetStatus(void);
-uint16_t GetIrqStatus(void);
-void ClearIrqStatus(uint16_t irq);
-void SetTxEnable(void);
-void SetRxEnable(void);
-void SetRx(uint32_t timeout);
-void SetTx(uint32_t timeoutInMs);
-uint8_t GetRssiInst();
-void GetRxBufferStatus(uint8_t* payloadLength, uint8_t* rxStartBufferPointer);
-void Wakeup(void);
-void WaitForIdle(unsigned long timeout);
-uint8_t ReadBuffer(uint8_t* rxData, uint8_t maxLen);
-void WriteBuffer(uint8_t* txData, uint8_t txDataLen);
-void WriteRegister(uint16_t reg, uint8_t* data, uint8_t numBytes);
-void ReadRegister(uint16_t reg, uint8_t* data, uint8_t numBytes);
-void WriteCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes);
-uint8_t WriteCommand2(uint8_t cmd, uint8_t* data, uint8_t numBytes);
-void ReadCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes);
-void SPItransfer(uint8_t cmd, bool write, uint8_t* dataOut, uint8_t* dataIn, uint8_t numBytes, bool waitForBusy);
-void LoRaError(int error);
-
-void lora_init();
+  void FixInvertedIQ(uint8_t iqConfig);
+  void SetDio3AsTcxoCtrl(float voltage, uint32_t delay);
+  void SetDio2AsRfSwitchCtrl(uint8_t enable);
+  void Reset(void);
+  void SetSleep(uint8_t mode);
+  void SetStandby(uint8_t mode);
+  void SetRfFrequency(uint32_t frequency);
+  void Calibrate(uint8_t calibParam);
+  void CalibrateImage(uint32_t frequency);
+  void SetRegulatorMode(uint8_t mode);
+  void SetBufferBaseAddress(uint8_t txBaseAddress, uint8_t rxBaseAddress);
+  void SetPowerConfig(int8_t power, uint8_t rampTime);
+  void SetOvercurrentProtection(float currentLimit);
+  void SetPaConfig(uint8_t paDutyCycle, uint8_t hpMax, uint8_t deviceSel, uint8_t paLut);
+  void SetDioIrqParams(uint16_t irqMask, uint16_t dio1Mask, uint16_t dio2Mask, uint16_t dio3Mask);
+  void SetStopRxTimerOnPreambleDetect(bool enable);
+  void SetLoRaSymbNumTimeout(uint8_t SymbNum);
+  void SetPacketType(uint8_t packetType);
+  void SetModulationParams(uint8_t spreadingFactor, uint8_t bandwidth, uint8_t codingRate, uint8_t lowDataRateOptimize);
+  uint8_t GetStatus(void);
+  uint16_t GetIrqStatus(void);
+  void ClearIrqStatus(uint16_t irq);
+  void SetTxEnable(void);
+  void SetRxEnable(void);
+  void SetRx(uint32_t timeout);
+  void SetTx(uint32_t timeoutInMs);
+  uint8_t GetRssiInst();
+  void GetRxBufferStatus(uint8_t* payloadLength, uint8_t* rxStartBufferPointer);
+  void Wakeup(void);
+  void WaitForIdle(unsigned long timeout, char* text, bool stop);
+  uint8_t ReadBuffer(uint8_t* rxData, uint8_t maxLen);
+  void WriteBuffer(uint8_t* txData, uint8_t txDataLen);
+  void WriteRegister(uint16_t reg, uint8_t* data, uint8_t numBytes, bool waitForBusy = true);
+  void ReadRegister(uint16_t reg, uint8_t* data, uint8_t numBytes, bool waitForBusy = true);
+  void WriteCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool waitForBusy = true);
+  uint8_t WriteCommand2(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool waitForBusy = true);
+  void ReadCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool waitForBusy = true);
+};
 
 #endif
