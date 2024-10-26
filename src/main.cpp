@@ -4,6 +4,7 @@
 
 #include <ra01s.h>
 #include <recv.h>
+#include <influxdb.h>
 
 static SX126x  lora(CONFIG_LORA_NSS_GPIO,               //Port-Pin Output: SPI select
              CONFIG_RST_GPIO,               //Port-Pin Output: Reset 
@@ -15,7 +16,7 @@ static SX126x  lora(CONFIG_LORA_NSS_GPIO,               //Port-Pin Output: SPI s
 void setup(){
   Serial.begin(115200);
   // Initialization
-  // spi_init(LORA_SPI_HOST, CONFIG_LORA_MOSI_GPIO, CONFIG_LORA_MISO_GPIO, CONFIG_LORA_SCK_GPIO);
+  influxdb_init();
   lora.LoRaConfig(LORA_SPREADING_FACTOR, 
                   LORA_BANDWIDTH, 
                   LORA_CODINGRATE, 
@@ -29,4 +30,5 @@ void setup(){
 
 void loop() {
   recv_task(&lora);
+  influxdb_task();
 }
