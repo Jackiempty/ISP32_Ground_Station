@@ -20,8 +20,8 @@ SX126x::SX126x(int spiSelect, int reset, int busy, int txen, int rxen)
   if (SX126x_TXEN != -1) pinMode(SX126x_TXEN, OUTPUT);
   if (SX126x_RXEN != -1) pinMode(SX126x_RXEN, OUTPUT);
 
-  // SPI.begin(CONFIG_LORA_SCK_GPIO, CONFIG_LORA_MISO_GPIO, CONFIG_LORA_MOSI_GPIO, CONFIG_LORA_NSS_GPIO);
-  SPI.begin();
+  SPI.begin(CONFIG_LORA_SCK_GPIO, CONFIG_LORA_MISO_GPIO, CONFIG_LORA_MOSI_GPIO, CONFIG_LORA_NSS_GPIO);
+  // SPI.begin();
 }
 
 
