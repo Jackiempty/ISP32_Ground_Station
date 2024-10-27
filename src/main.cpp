@@ -16,7 +16,7 @@ static SX126x  lora(CONFIG_LORA_NSS_GPIO,               //Port-Pin Output: SPI s
 void setup(){
   Serial.begin(115200);
   // Initialization
-  influxdb_init();
+  // influxdb_init();
   lora.LoRaConfig(LORA_SPREADING_FACTOR, 
                   LORA_BANDWIDTH, 
                   LORA_CODINGRATE, 
@@ -25,10 +25,11 @@ void setup(){
                   true,               //crcOn  
                   false);             //invertIrq
 
-  printf("I am a ground receiver board!\n");
+  Serial.print("I am a ground receiver board!\n");
 }
 
 void loop() {
   recv_task(&lora);
-  influxdb_task();
+  // influxdb_task();
+  recv_print();
 }

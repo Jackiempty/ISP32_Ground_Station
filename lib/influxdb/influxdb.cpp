@@ -1,13 +1,15 @@
+#include "influxdb.h"
+#include "recv.h"
+
 #if defined(ESP32)
 #define DEVICE "ESP32"
+WiFiMulti wifiMulti;
 #endif
-#include "influxdb.h"
 
-const char* ssid           = "esp_32_AP";                // SSID Name
-const char* password       = "ispforever";   // SSID Password - Set to NULL to have an open AP
-const int   channel        = 10;                        // WiFi Channel number between 1 and 13
-const bool  hide_SSID      = false;                     // To disable SSID broadcast -> SSID will not appear in a basic WiFi scan
-const int   max_connection = 2;                         // Maximum simultaneous connected clients on the AP
+// WiFi AP SSID
+#define WIFI_SSID "Room_0562"
+// WiFi password
+#define WIFI_PASSWORD "7150026666"
 
 #define INFLUXDB_URL "http://192.168.4.2:8086"
 #define INFLUXDB_TOKEN "uK_5CudAdTeRoci5K8fgyFwRMCX5VhJluAPu11tI6LrnBL86bwsr0DDQC4hxF8FJsCvFfv--IX3d-SIxd2EyJw=="
@@ -18,17 +20,30 @@ const int   max_connection = 2;                         // Maximum simultaneous 
 #define TZ_INFO "UTC8"
 
 // Declare InfluxDB client instance with preconfigured InfluxCloud certificate
-InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKEN, InfluxDbCloud2CACert);
+static InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKEN, InfluxDbCloud2CACert);
 
 // Declare Data point
-Point sensor("wifi_status");
+static Point sensor("wifi_status");
+static lora_data_t *lora_data;
 
 void influxdb_init() {
-  Serial.println("\n[*] Creating AP");
-  WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid, password, channel, hide_SSID, max_connection);
-  Serial.print("[+] AP Created with IP Gateway ");
-  Serial.println(WiFi.softAPIP());
+  lora_data = lora_data_fetch();
+  // Setup wifi
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
+
+  Serial.print("Connecting to wifi");
+  while (wifiMulti.run() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(100);
+  }
+  Serial.println();
+
+  // Accurate time is necessary for certificate validation and writing in batches
+  // We use the NTP servers in your area as provided by: https://www.pool.ntp.org/zone/
+  // Syncing progress and the time will be printed to Serial.
+  timeSync(TZ_INFO, "pool.ntp.org", "time.nis.gov");
 
   // Check server connection
   if (client.validateConnection()) {
@@ -41,7 +56,7 @@ void influxdb_init() {
 
   // Add tags to the data point
   sensor.addTag("device", DEVICE);
-  sensor.addTag("SSID", "ESP32_AP");
+  sensor.addTag("SSID", WiFi.SSID());
 }
 
 void influxdb_task() {
@@ -52,6 +67,22 @@ void influxdb_task() {
   // Store measured value into point
   // Report RSSI of currently connected network
   sensor.addField("rssi", WiFi.RSSI());
+  sensor.addField("state", lora_data->state);
+  sensor.addField("systick", lora_data->systick);
+  sensor.addField("pressure_altitude", lora_data->pressure_altitude);
+  sensor.addField("pressure_velocity", lora_data->pressure_velocity);
+  sensor.addField("longitude", lora_data->longitude);
+  sensor.addField("latitude", lora_data->latitude);
+  sensor.addField("gps_altitude", lora_data->gps_altitude);
+  sensor.addField("acceleration.x", lora_data->acceleration.x);
+  sensor.addField("acceleration.y", lora_data->acceleration.y);
+  sensor.addField("acceleration.z", lora_data->acceleration.z);
+  sensor.addField("gyro.x", lora_data->gyro.x);
+  sensor.addField("gyro.y", lora_data->gyro.y);
+  sensor.addField("gyro.z", lora_data->gyro.z);
+  sensor.addField("roll", lora_data->roll);
+  sensor.addField("pitch", lora_data->pitch);
+  sensor.addField("heading", lora_data->heading);
 
   // Print what are we exactly writing
   Serial.print("Writing: ");
