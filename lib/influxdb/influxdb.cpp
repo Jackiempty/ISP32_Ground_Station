@@ -7,11 +7,11 @@
 WiFiMulti wifiMulti;
 #endif
 
-#if (STATUS == 0)
+#if (MODE == 0)
 #define WIFI_SSID "Room_0562"       // WiFi AP SSID
 #define WIFI_PASSWORD "7150026666"  // WiFi password
 static inline void wifi_init();
-#elif (STATUS == 1)
+#elif (MODE == 1)
 const char* ssid = "esp_32_AP";       // SSID Name
 const char* password = "ispforever";  // SSID Password - Set to NULL to have an open AP
 const int channel = 10;               // WiFi Channel number between 1 and 13
@@ -32,15 +32,15 @@ static inline void ap_init();
 static InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKEN, InfluxDbCloud2CACert);
 
 // Declare Data point
-static Point sensor("wifi_status");
+static Point sensor("LoRa_data");
 static lora_data_t *lora_data;
 
 void influxdb_init() {
   lora_data = lora_data_fetch();
 
-#if (STATUS == 0)
+#if (MODE == 0)
   wifi_init();
-#elif (STATUS == 1)
+#elif (MODE == 1)
   ap_init();
 #endif
 
@@ -98,7 +98,7 @@ void influxdb_task() {
   delay(1000);
 }
 
-#if (STATUS == 0)
+#if (MODE == 0)
 static inline void wifi_init() {
   // Setup wifi
   WiFi.mode(WIFI_STA);
@@ -117,7 +117,7 @@ static inline void wifi_init() {
   // Syncing progress and the time will be printed to Serial.
   timeSync(TZ_INFO, "pool.ntp.org", "time.nis.gov");
 }
-#elif (STATUS == 1)
+#elif (MODE == 1)
 static inline void ap_init() {
   Serial.println("\n[*] Creating AP");
   WiFi.mode(WIFI_AP);
