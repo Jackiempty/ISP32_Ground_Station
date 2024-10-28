@@ -1,19 +1,18 @@
-#include <WiFi.h>
 #include <InfluxDbClient.h>
 #include <InfluxDbCloud.h>
-
+#include <WiFi.h>
+#include <influxdb.h>
 #include <ra01s.h>
 #include <recv.h>
-#include <influxdb.h>
 
-static SX126x  lora(CONFIG_LORA_NSS_GPIO,               //Port-Pin Output: SPI select
-             CONFIG_RST_GPIO,               //Port-Pin Output: Reset 
-             CONFIG_BUSY_GPIO,               //Port-Pin Input:  Busy
-             CONFIG_TXEN_GPIO,               //Port-Pin Output: TXEN
-             CONFIG_RXEN_GPIO                //Port-Pin Output: RXEN
-             );
+static SX126x lora(CONFIG_LORA_NSS_GPIO,  // Port-Pin Output: SPI select
+                   CONFIG_RST_GPIO,       // Port-Pin Output: Reset
+                   CONFIG_BUSY_GPIO,      // Port-Pin Input:  Busy
+                   CONFIG_TXEN_GPIO,      // Port-Pin Output: TXEN
+                   CONFIG_RXEN_GPIO       // Port-Pin Output: RXEN
+);
 
-void setup(){
+void setup() {
   Serial.begin(115200);
   // Initialization
   // influxdb_init();

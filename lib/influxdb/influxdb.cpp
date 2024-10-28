@@ -1,4 +1,5 @@
 #include "influxdb.h"
+
 #include "recv.h"
 
 #if defined(ESP32)
@@ -7,14 +8,16 @@ WiFiMulti wifiMulti;
 #endif
 
 #if (STATUS == 0)
-#define WIFI_SSID "Room_0562"  // WiFi AP SSID
+#define WIFI_SSID "Room_0562"       // WiFi AP SSID
 #define WIFI_PASSWORD "7150026666"  // WiFi password
+static inline void wifi_init();
 #elif (STATUS == 1)
-const char* ssid           = "esp_32_AP";                // SSID Name
-const char* password       = "ispforever";   // SSID Password - Set to NULL to have an open AP
-const int   channel        = 10;                        // WiFi Channel number between 1 and 13
-const bool  hide_SSID      = false;                     // To disable SSID broadcast -> SSID will not appear in a basic WiFi scan
-const int   max_connection = 2;                         // Maximum simultaneous connected clients on the AP
+const char* ssid = "esp_32_AP";       // SSID Name
+const char* password = "ispforever";  // SSID Password - Set to NULL to have an open AP
+const int channel = 10;               // WiFi Channel number between 1 and 13
+const bool hide_SSID = false;         // To disable SSID broadcast -> SSID will not appear in a basic WiFi scan
+const int max_connection = 2;         // Maximum simultaneous connected clients on the AP
+static inline void ap_init();
 #endif
 
 #define INFLUXDB_URL "http://192.168.4.2:8086"
@@ -34,22 +37,12 @@ static lora_data_t *lora_data;
 
 void influxdb_init() {
   lora_data = lora_data_fetch();
-  // Setup wifi
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
 
-  Serial.print("Connecting to wifi");
-  while (wifiMulti.run() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(100);
-  }
-  Serial.println();
-
-  // Accurate time is necessary for certificate validation and writing in batches
-  // We use the NTP servers in your area as provided by: https://www.pool.ntp.org/zone/
-  // Syncing progress and the time will be printed to Serial.
-  timeSync(TZ_INFO, "pool.ntp.org", "time.nis.gov");
+#if (STATUS == 0)
+  wifi_init();
+#elif (STATUS == 1)
+  ap_init();
+#endif
 
   // Check server connection
   if (client.validateConnection()) {
@@ -93,14 +86,43 @@ void influxdb_task() {
   // Print what are we exactly writing
   Serial.print("Writing: ");
   Serial.println(sensor.toLineProtocol());
-  
+
   // Write point (This is the line that write data to DB)
   if (!(client.writePoint(sensor))) {
     Serial.print("InfluxDB write failed: ");
     Serial.println(client.getLastErrorMessage());
   }
-  
-    Serial.println("==========");
-  
-    delay(1000);
+
+  Serial.println("==========");
+
+  delay(1000);
 }
+
+#if (STATUS == 0)
+static inline void wifi_init() {
+  // Setup wifi
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
+
+  Serial.print("Connecting to wifi");
+  while (wifiMulti.run() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(100);
+  }
+  Serial.println();
+
+  // Accurate time is necessary for certificate validation and writing in batches
+  // We use the NTP servers in your area as provided by: https://www.pool.ntp.org/zone/
+  // Syncing progress and the time will be printed to Serial.
+  timeSync(TZ_INFO, "pool.ntp.org", "time.nis.gov");
+}
+#elif (STATUS == 1)
+static inline void ap_init() {
+  Serial.println("\n[*] Creating AP");
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(ssid, password, channel, hide_SSID, max_connection);
+  Serial.print("[+] AP Created with IP Gateway ");
+  Serial.println(WiFi.softAPIP());
+}
+#endif

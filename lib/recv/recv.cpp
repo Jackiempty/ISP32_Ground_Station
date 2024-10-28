@@ -30,7 +30,7 @@ void recv_task(SX126x *lora) {
 
   for (;;) {
     if ((len = lora->Receive(&data[0], RECV_LEN)) > 0) {
-      uint8_t* logger_ptr = data;
+      uint8_t *logger_ptr = data;
 
       memcpy(state, logger_ptr, sizeof(fsm_state_e));
       logger_ptr += sizeof(fsm_state_e);
@@ -78,13 +78,9 @@ void recv_task(SX126x *lora) {
       logger_ptr += sizeof(tx_ecc);
 
       if (tx_ecc == ecc) {
-        printf(">>>%u, %lu, %f, %f, %ld, %ld, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n<<<\n",
-               *state, *systick, *pressure_altitude,
-               *pressure_velocity,
-               *longitude, *latitude, *gps_altitude,
-               acceleration->x, acceleration->y, acceleration->z,
-               gyro->x, gyro->y, gyro->z,
-               *roll, *pitch, *heading);
+        printf(">>>%u, %lu, %f, %f, %ld, %ld, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n<<<\n", *state, *systick, *pressure_altitude,
+               *pressure_velocity, *longitude, *latitude, *gps_altitude, acceleration->x, acceleration->y, acceleration->z, gyro->x,
+               gyro->y, gyro->z, *roll, *pitch, *heading);
 
         digitalWrite(1, led_status);
         led_status = !led_status;
@@ -93,7 +89,7 @@ void recv_task(SX126x *lora) {
   }
 }
 
-lora_data_t *lora_data_fetch() {return &lora_data;}
+lora_data_t *lora_data_fetch() { return &lora_data; }
 
 void recv_print() {
   printf("bmp280_altitude: %f\n", lora_data.pressure_altitude);
