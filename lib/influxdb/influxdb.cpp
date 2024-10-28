@@ -7,18 +7,15 @@
 WiFiMulti wifiMulti;
 #endif
 
-#if (MODE == 0)
-#define WIFI_SSID "Room_0562"       // WiFi AP SSID
-#define WIFI_PASSWORD "7150026666"  // WiFi password
-static inline void wifi_init();
-#elif (MODE == 1)
-const char* ssid = "esp_32_AP";       // SSID Name
-const char* password = "ispforever";  // SSID Password - Set to NULL to have an open AP
-const int channel = 10;               // WiFi Channel number between 1 and 13
-const bool hide_SSID = false;         // To disable SSID broadcast -> SSID will not appear in a basic WiFi scan
-const int max_connection = 2;         // Maximum simultaneous connected clients on the AP
-static inline void ap_init();
-#endif
+#define WIFI_SSID "Room_0562"
+#define WIFI_PASSWORD "7150026666"
+#define channel 10               // WiFi Channel number between 1 and 13
+#define hide_SSID false         // To disable SSID broadcast -> SSID will not appear in a basic WiFi scan
+#define max_connection 2         // Maximum simultaneous connected clients on the AP
+#define wifi_init() MODE##_init()
+
+static inline void AP_init();
+static inline void STA_init();
 
 #define INFLUXDB_URL "http://192.168.4.2:8086"
 #define INFLUXDB_TOKEN "uK_5CudAdTeRoci5K8fgyFwRMCX5VhJluAPu11tI6LrnBL86bwsr0DDQC4hxF8FJsCvFfv--IX3d-SIxd2EyJw=="
@@ -32,17 +29,12 @@ static inline void ap_init();
 static InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKEN, InfluxDbCloud2CACert);
 
 // Declare Data point
-static Point sensor("LoRa_data");
+static Point sensor("lora_data");
 static lora_data_t *lora_data;
 
 void influxdb_init() {
   lora_data = lora_data_fetch();
-
-#if (MODE == 0)
-  wifi_init();
-#elif (MODE == 1)
-  ap_init();
-#endif
+  STA_init();
 
   // Check server connection
   if (client.validateConnection()) {
@@ -98,8 +90,7 @@ void influxdb_task() {
   delay(1000);
 }
 
-#if (MODE == 0)
-static inline void wifi_init() {
+static inline void STA_init() {
   // Setup wifi
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -117,12 +108,11 @@ static inline void wifi_init() {
   // Syncing progress and the time will be printed to Serial.
   timeSync(TZ_INFO, "pool.ntp.org", "time.nis.gov");
 }
-#elif (MODE == 1)
-static inline void ap_init() {
+
+static inline void AP_init() {
   Serial.println("\n[*] Creating AP");
   WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid, password, channel, hide_SSID, max_connection);
+  WiFi.softAP(WIFI_SSID, WIFI_PASSWORD, channel, hide_SSID, max_connection);
   Serial.print("[+] AP Created with IP Gateway ");
   Serial.println(WiFi.softAPIP());
 }
-#endif

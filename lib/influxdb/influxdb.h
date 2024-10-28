@@ -1,8 +1,8 @@
 #ifndef _INFLUXDB_
 #define _INFLUXDB_
 
-// Wifi: 0, AP: 1
-#define MODE 0
+#define MODE AP
+// #define MODE STA
 
 #include <InfluxDbClient.h>
 #include <InfluxDbCloud.h>
