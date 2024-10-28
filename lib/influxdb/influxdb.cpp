@@ -6,10 +6,16 @@
 WiFiMulti wifiMulti;
 #endif
 
-// WiFi AP SSID
-#define WIFI_SSID "Room_0562"
-// WiFi password
-#define WIFI_PASSWORD "7150026666"
+#if (STATUS == 0)
+#define WIFI_SSID "Room_0562"  // WiFi AP SSID
+#define WIFI_PASSWORD "7150026666"  // WiFi password
+#elif (STATUS == 1)
+const char* ssid           = "esp_32_AP";                // SSID Name
+const char* password       = "ispforever";   // SSID Password - Set to NULL to have an open AP
+const int   channel        = 10;                        // WiFi Channel number between 1 and 13
+const bool  hide_SSID      = false;                     // To disable SSID broadcast -> SSID will not appear in a basic WiFi scan
+const int   max_connection = 2;                         // Maximum simultaneous connected clients on the AP
+#endif
 
 #define INFLUXDB_URL "http://192.168.4.2:8086"
 #define INFLUXDB_TOKEN "uK_5CudAdTeRoci5K8fgyFwRMCX5VhJluAPu11tI6LrnBL86bwsr0DDQC4hxF8FJsCvFfv--IX3d-SIxd2EyJw=="
