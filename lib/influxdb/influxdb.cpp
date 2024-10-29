@@ -83,7 +83,6 @@ void influxdb_task() {
 
   printf("==========\n");
 
-  delay(1000);
 }
 
 static inline void STA_init() {
