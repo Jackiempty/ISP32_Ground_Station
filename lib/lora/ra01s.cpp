@@ -733,8 +733,7 @@ void SX126x::WriteRegister(uint16_t reg, uint8_t* data, uint8_t numBytes, bool w
 
   // start transfer
   if(debugPrint) {
-    Serial.print("WriteRegister:  REG=0x");
-    Serial.print(reg, HEX);
+    printf("WriteRegister:  REG=0x%x", reg);
   }
   digitalWrite(SX126x_SPI_SELECT, LOW);
   SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
@@ -745,14 +744,12 @@ void SX126x::WriteRegister(uint16_t reg, uint8_t* data, uint8_t numBytes, bool w
   SPI.transfer(reg & 0xff);
   
   if(debugPrint) {
-    Serial.print(" ");
-    Serial.print(" DataOut: ");
+    printf("  DataOut: ");
   }
   for(uint8_t n = 0; n < numBytes; n++) {
     uint8_t in = SPI.transfer(data[n]);
     if(debugPrint) {
-      Serial.print(data[n], HEX);
-      Serial.print(" ");
+      printf(" %x ", data[n]);
     }
   }
   if(debugPrint)printf("\n");
@@ -774,8 +771,7 @@ void SX126x::ReadRegister(uint16_t reg, uint8_t* data, uint8_t numBytes, bool wa
 
   // start transfer
   if(debugPrint) {
-    Serial.print("ReadRegister:  REG=0x");
-    Serial.print(reg, HEX);
+    printf("ReadRegister:  REG=0x%x", reg);
   }
   digitalWrite(SX126x_SPI_SELECT, LOW);
   SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
@@ -787,14 +783,12 @@ void SX126x::ReadRegister(uint16_t reg, uint8_t* data, uint8_t numBytes, bool wa
   SPI.transfer(SX126X_CMD_NOP);
 
   if(debugPrint) {
-    Serial.print(" ");
-    Serial.print(" DataIn: ");
+    printf("  DataIn: ");
   }
   for(uint8_t n = 0; n < numBytes; n++) {
     data[n] = SPI.transfer(SX126X_CMD_NOP);
     if(debugPrint) {
-      Serial.print(data[n], HEX);
-      Serial.print(" ");
+      printf(" %x ", data[n]);
     }
   }
   if(debugPrint) printf("\n");
@@ -832,10 +826,7 @@ uint8_t SX126x::WriteCommand2(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool
 
   // send command byte
   if(debugPrint) {
-    Serial.print("WriteCommand:  CMD=0x");
-    Serial.print(cmd, HEX);
-    Serial.print(" ");
-    Serial.print(" DataOut: ");
+    printf("WriteCommand:  CMD=0x%x  DataOut: ", cmd);
   }
   SPI.transfer(cmd);
 
@@ -846,10 +837,7 @@ uint8_t SX126x::WriteCommand2(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool
   for(uint8_t n = 0; n < numBytes; n++) {
     uint8_t in = SPI.transfer(data[n]);
     if(debugPrint) {
-      Serial.print(data[n], HEX);
-      Serial.print("-->");
-      Serial.print(in, HEX);
-      Serial.print(" ");
+      printf("%x --> %x ", data[n], in);
     }
 
     // check status
@@ -892,22 +880,19 @@ void SX126x::ReadCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool wait
 
   // send command byte
   if(debugPrint) {
-    Serial.print("ReadCommand:   CMD=0x");
-    Serial.print(cmd, HEX);
+    printf("ReadCommand:   CMD=0x%x", cmd);
   }
   SPI.transfer(cmd);
 
   if(debugPrint) {
-    Serial.print(" ");
-    Serial.print(" DataIn: ");
+    printf("  DataIn: ");
   }
 
   // send/receive all bytes
   for(uint8_t n = 0; n < numBytes; n++) {
     data[n] = SPI.transfer(SX126X_CMD_NOP);
     if(debugPrint) {
-      Serial.print(data[n], HEX);
-      Serial.print(" ");
+      printf("%x ", data[n]);
     }
   }
   if(debugPrint) printf("\n");
