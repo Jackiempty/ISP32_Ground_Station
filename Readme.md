@@ -12,7 +12,7 @@ In addition, there are two mode of sending data up to cloud:
 - MCU as a Wifi client:  
 If the environment MCU is at is equipped with Wifi and internet, the MCU can just connect to it and upload the data to the cloud located in the same LAN. Also, if the LAN is connected to internet, the data on the cloud will be able to be accessed by everyone on internet.  
 
-- MCU as a Wifi AP
+- MCU as a Wifi AP:  
 If the environment is not equipped with Wifi, the MCU itself can be the Wifi AP and upload the data to the cloud connected to the MCU's LAN. However, since MCU itself is not connected to internet, the cloud in the LAN would not be able to be accessed by anyone outside of the same LAN as the DB server.  
 
 ### Data Base
