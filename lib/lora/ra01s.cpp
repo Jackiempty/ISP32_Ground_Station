@@ -27,19 +27,13 @@ SX126x::SX126x(int spiSelect, int reset, int busy, int txen, int rxen)
 
 int16_t SX126x::begin(uint32_t frequencyInHz, int8_t txPowerInDbm, float tcxoVoltage, bool useRegulatorLDO) 
 {
-  Serial.println("begin");
-  Serial.print("debugPrint=");
-  Serial.println(debugPrint);
-  Serial.print("SX126x_SPI_SELECT=");
-  Serial.println(SX126x_SPI_SELECT);
-  Serial.print("SX126x_RESET=");
-  Serial.println(SX126x_RESET);
-  Serial.print("SX126x_BUSY=");
-  Serial.println(SX126x_BUSY);
-  Serial.print("SX126x_TXEN=");
-  Serial.println(SX126x_TXEN);
-  Serial.print("SX126x_RXEN=");
-  Serial.println(SX126x_RXEN);
+  printf("begin\n");
+  printf("debugPrint= %d\n", debugPrint);
+  printf("SX126x_SPI_SELECT= %d", SX126x_SPI_SELECT);
+  printf("SX126x_RESET= %d\n", SX126x_RESET);
+  printf("SX126x_BUSY= %d", SX126x_BUSY);
+  printf("SX126x_TXEN= %d\n", SX126x_TXEN);
+  printf("SX126x_RXEN= %d\n", SX126x_RXEN);
   
   if ( txPowerInDbm > 22 )
     txPowerInDbm = 22;
@@ -47,24 +41,22 @@ int16_t SX126x::begin(uint32_t frequencyInHz, int8_t txPowerInDbm, float tcxoVol
     txPowerInDbm = -3;
   
   Reset();
-  Serial.println("Reset");
+  printf("Reset\n");
   
   uint8_t wk[2];
   ReadRegister(SX126X_REG_LORA_SYNC_WORD_MSB, wk, 2); // 0x0740
   uint16_t syncWord = (wk[0] << 8) + wk[1];
-  Serial.print("syncWord=0x");
-  Serial.println(syncWord, HEX);
+  printf("syncWord=0x%x\n", syncWord);
   if (syncWord != SX126X_SYNC_WORD_PUBLIC && syncWord != SX126X_SYNC_WORD_PRIVATE) {
-    Serial.println("SX126x error, maybe no SPI connection");
+    printf("SX126x error, maybe no SPI connection\n");
     return ERR_INVALID_MODE;
   }
 
-  Serial.println("SX126x installed");
+  printf("SX126x installed\n");
   SetStandby(SX126X_STANDBY_RC);
 
   SetDio2AsRfSwitchCtrl(true);
-  Serial.print("tcxoVoltage=");
-  Serial.println(tcxoVoltage);
+  printf("tcxoVoltage= %.4f\n", tcxoVoltage);
   // set TCXO control, if requested
   if(tcxoVoltage > 0.0) {
     SetDio3AsTcxoCtrl(tcxoVoltage, RADIO_TCXO_SETUP_TIME); // Configure the radio to use a TCXO controlled by DIO3
@@ -79,8 +71,7 @@ int16_t SX126x::begin(uint32_t frequencyInHz, int8_t txPowerInDbm, float tcxoVol
                   | SX126X_CALIBRATE_RC64K_ON
                   );
 
-  Serial.print("useRegulatorLDO=");
-  Serial.println(useRegulatorLDO);
+  printf("useRegulatorLDO= %d\n", useRegulatorLDO);
   if (useRegulatorLDO) {
     SetRegulatorMode(SX126X_REGULATOR_LDO); // set regulator mode: LDO
   } else {
@@ -232,13 +223,12 @@ bool SX126x::Send(uint8_t *pData, uint8_t len, uint8_t mode)
         irqStatus = GetIrqStatus();
       }
       if (debugPrint) {
-        Serial.print("irqStatus=");
-        Serial.println(irqStatus, HEX);
+        printf("irqStatus= %x\n",irqStatus);
         if (irqStatus & SX126X_IRQ_TX_DONE) {
-          Serial.println("SX126X_IRQ_TX_DONE");
+          printf("SX126X_IRQ_TX_DONE\n");
         }
         if (irqStatus & SX126X_IRQ_TIMEOUT) {
-          Serial.println("SX126X_IRQ_TIMEOUT");
+          printf("SX126X_IRQ_TIMEOUT\n");
         }
       }
       txActive = false;
@@ -255,8 +245,7 @@ bool SX126x::Send(uint8_t *pData, uint8_t len, uint8_t mode)
     }
   }
   if (debugPrint) {
-    Serial.print("Send rv=");
-    Serial.println(rv, HEX);
+    printf("Send rv= %x\n", rv);
   }
   return rv;
 }
@@ -573,8 +562,7 @@ void SX126x::ClearIrqStatus(uint16_t irq)
 void SX126x::SetRx(uint32_t timeout)
 {
   if (debugPrint) {
-    Serial.print("----- SetRx timeout=0x");
-    Serial.println(timeout, HEX);
+    printf("----- SetRx timeout=0x%x\n", timeout);
   }
   SetStandby(SX126X_STANDBY_RC);
   SetRxEnable();
@@ -589,7 +577,7 @@ void SX126x::SetRx(uint32_t timeout)
     delay(1);
   }
   if ((GetStatus() & 0x70) != 0x50) {
-    Serial.println("SetRx Illegal Status");
+    printf("SetRx Illegal Status\n");
     while(1) {delay(1);}
   }
 }
@@ -598,11 +586,7 @@ void SX126x::SetRx(uint32_t timeout)
 void SX126x::SetRxEnable(void)
 {
   if (debugPrint) {
-    Serial.print("SetRxEnable:SX126x_TXEN=");
-    Serial.print(SX126x_TXEN);
-    Serial.print(" SX126x_RXEN=");
-    Serial.print(SX126x_RXEN);
-    Serial.println();
+    printf("SetRxEnable:SX126x_TXEN= %d\n SX126x_RXEN= %d\n", SX126x_TXEN), SX126x_RXEN;
   }
   if ((SX126x_TXEN != -1) && (SX126x_RXEN != -1)) {
     digitalWrite(SX126x_RXEN, HIGH);
@@ -614,8 +598,7 @@ void SX126x::SetRxEnable(void)
 void SX126x::SetTx(uint32_t timeoutInMs)
 {
   if (debugPrint) {
-    Serial.print("----- SetTx timeoutInMs=");
-    Serial.println(timeoutInMs);
+    printf("----- SetTx timeoutInMs= %d\n", timeoutInMs);
   }
   SetStandby(SX126X_STANDBY_RC);
   SetTxEnable();
@@ -627,10 +610,7 @@ void SX126x::SetTx(uint32_t timeoutInMs)
     tout = (uint32_t)(timeoutInUs / 15.625);
   }
   if (debugPrint) {
-    Serial.print("SetTx timeoutInMs=");
-    Serial.print(timeoutInMs);
-    Serial.print(" tout=");
-    Serial.println(tout);
+    printf("SetTx timeoutInMs=%d tout=%d\n", timeoutInMs, tout);
   }
   buf[0] = (uint8_t)((tout >> 16) & 0xFF);
   buf[1] = (uint8_t)((tout >> 8) & 0xFF);
@@ -642,7 +622,7 @@ void SX126x::SetTx(uint32_t timeoutInMs)
     delay(1);
   }
   if ((GetStatus() & 0x70) != 0x60) {
-    Serial.println("SetTx Illegal Status");
+    printf("SetTx Illegal Status\n");
     while(1) {delay(1);}
   }
 }
@@ -651,11 +631,7 @@ void SX126x::SetTx(uint32_t timeoutInMs)
 void SX126x::SetTxEnable(void)
 {
   if (debugPrint) {
-    Serial.print("SetTxEnable:SX126x_TXEN=");
-    Serial.print(SX126x_TXEN);
-    Serial.print(" SX126x_RXEN=");
-    Serial.print(SX126x_RXEN);
-    Serial.println();
+    printf("SetTxEnable:SX126x_TXEN=%d SX126x_RXEN=%d\n", SX126x_TXEN, SX126x_RXEN);
   }
   if ((SX126x_TXEN != -1) && (SX126x_RXEN != -1)){
     digitalWrite(SX126x_RXEN, LOW);
@@ -688,10 +664,7 @@ void SX126x::WaitForIdle(unsigned long timeout, const char *text, bool stop)
   while(digitalRead(SX126x_BUSY)) {
     delayMicroseconds(1);
     if(millis() - start >= timeout) {
-      Serial.print("WaitForIdle [");
-      Serial.print(text);
-      Serial.print("] Timeout timeout=");
-      Serial.println(timeout);
+      printf("WaitForIdle [%s] Timeout timeout=%d\n", text, timeout);
       if (stop) {
         while(1) {delay(1);}
       }
@@ -708,7 +681,7 @@ uint8_t SX126x::ReadBuffer(uint8_t *rxData, uint8_t maxLen)
   GetRxBufferStatus(&payloadLength, &offset);
   if( payloadLength > maxLen )
   {
-    Serial.println("ReadBuffer maxLen too small");
+    printf("ReadBuffer maxLen too small\n");
     return 0;
   }
 
@@ -760,7 +733,7 @@ void SX126x::WriteRegister(uint16_t reg, uint8_t* data, uint8_t numBytes, bool w
 
   // start transfer
   if(debugPrint) {
-    Serial.print("WriteRegister: REG=0x");
+    Serial.print("WriteRegister:  REG=0x");
     Serial.print(reg, HEX);
   }
   digitalWrite(SX126x_SPI_SELECT, LOW);
@@ -782,7 +755,7 @@ void SX126x::WriteRegister(uint16_t reg, uint8_t* data, uint8_t numBytes, bool w
       Serial.print(" ");
     }
   }
-  if(debugPrint)Serial.println();
+  if(debugPrint)printf("\n");
 
   // stop transfer
   SPI.endTransaction();
@@ -824,7 +797,7 @@ void SX126x::ReadRegister(uint16_t reg, uint8_t* data, uint8_t numBytes, bool wa
       Serial.print(" ");
     }
   }
-  if(debugPrint) Serial.println();
+  if(debugPrint) printf("\n");
 
   // stop transfer
   SPI.endTransaction();
@@ -844,8 +817,7 @@ void SX126x::WriteCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool wai
     if (status == 0) break;
   }
   if (status != 0) {
-    Serial.print("SPI Transaction error:");
-    Serial.println(status);
+    printf("SPI Transaction error: %c\n", status);
     while(1) {delay(1);}
   }
 }
@@ -891,7 +863,7 @@ uint8_t SX126x::WriteCommand2(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool
     break;
     }
   }
-  if(debugPrint) Serial.println();
+  if(debugPrint) printf("\n");
 
   // stop transfer
   SPI.endTransaction();
@@ -903,8 +875,7 @@ uint8_t SX126x::WriteCommand2(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool
   }
 
   if (status != 0) {
-    Serial.print("SPI Transaction error:");
-    Serial.println(status);
+    printf("SPI Transaction error: %c\n", status);
     //while(1) {delay(1);}
   }
   return status;
@@ -939,7 +910,7 @@ void SX126x::ReadCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool wait
       Serial.print(" ");
     }
   }
-  if(debugPrint) Serial.println();
+  if(debugPrint) printf("\n");
 
   // stop transfer
   SPI.endTransaction();

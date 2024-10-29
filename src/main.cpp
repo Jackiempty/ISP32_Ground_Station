@@ -24,7 +24,7 @@ void setup() {
                   true,               //crcOn  
                   false);             //invertIrq
 
-  Serial.print("I am a ground receiver board!\n");
+  printf("I am a ground receiver board!\n");
 }
 
 void loop() {

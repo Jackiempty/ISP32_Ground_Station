@@ -38,11 +38,9 @@ void influxdb_init() {
 
   // Check server connection
   if (client.validateConnection()) {
-    Serial.print("Connected to InfluxDB: ");
-    Serial.println(client.getServerUrl());
+    printf("Connected to InfluxDB: %s\n", client.getServerUrl());
   } else {
-    Serial.print("InfluxDB connection failed: ");
-    Serial.println(client.getLastErrorMessage());
+    printf("InfluxDB connection failed: %s\n", client.getLastErrorMessage());
   }
 
   // Add tags to the data point
@@ -76,16 +74,14 @@ void influxdb_task() {
   sensor.addField("heading", lora_data->heading);
 
   // Print what are we exactly writing
-  Serial.print("Writing: ");
-  Serial.println(sensor.toLineProtocol());
+  printf("Writing: %s\n", sensor.toLineProtocol());
 
   // Write point (This is the line that write data to DB)
   if (!(client.writePoint(sensor))) {
-    Serial.print("InfluxDB write failed: ");
-    Serial.println(client.getLastErrorMessage());
+    printf("InfluxDB write failed: %s\n", client.getLastErrorMessage());
   }
 
-  Serial.println("==========");
+  printf("==========\n");
 
   delay(1000);
 }
@@ -96,12 +92,11 @@ static inline void STA_init() {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
 
-  Serial.print("Connecting to wifi");
+  printf("Connecting to wifi\n");
   while (wifiMulti.run() != WL_CONNECTED) {
-    Serial.print(".");
+    printf(".\n");
     delay(100);
   }
-  Serial.println();
 
   // Accurate time is necessary for certificate validation and writing in batches
   // We use the NTP servers in your area as provided by: https://www.pool.ntp.org/zone/
@@ -110,9 +105,8 @@ static inline void STA_init() {
 }
 
 static inline void AP_init() {
-  Serial.println("\n[*] Creating AP");
+  printf("\n[*] Creating AP\n");
   WiFi.mode(WIFI_AP);
   WiFi.softAP(WIFI_SSID, WIFI_PASSWORD, channel, hide_SSID, max_connection);
-  Serial.print("[+] AP Created with IP Gateway ");
-  Serial.println(WiFi.softAPIP());
+  printf("[+] AP Created with IP Gateway %s\n", std::to_string(WiFi.softAPIP()));
 }
