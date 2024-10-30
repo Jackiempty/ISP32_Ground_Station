@@ -29,9 +29,9 @@ int16_t SX126x::begin(uint32_t frequencyInHz, int8_t txPowerInDbm, float tcxoVol
 {
   printf("begin\n");
   printf("debugPrint= %d\n", debugPrint);
-  printf("SX126x_SPI_SELECT= %d", SX126x_SPI_SELECT);
+  printf("SX126x_SPI_SELECT= %d\n", SX126x_SPI_SELECT);
   printf("SX126x_RESET= %d\n", SX126x_RESET);
-  printf("SX126x_BUSY= %d", SX126x_BUSY);
+  printf("SX126x_BUSY= %d\n", SX126x_BUSY);
   printf("SX126x_TXEN= %d\n", SX126x_TXEN);
   printf("SX126x_RXEN= %d\n", SX126x_RXEN);
   
@@ -811,7 +811,7 @@ void SX126x::WriteCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool wai
     if (status == 0) break;
   }
   if (status != 0) {
-    printf("SPI Transaction error: %c\n", status);
+    printf("SPI Transaction error: %d\n", status);
     while(1) {delay(1);}
   }
 }
@@ -863,7 +863,7 @@ uint8_t SX126x::WriteCommand2(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool
   }
 
   if (status != 0) {
-    printf("SPI Transaction error: %c\n", status);
+    printf("SPI Transaction error: %d\n", status);
     //while(1) {delay(1);}
   }
   return status;

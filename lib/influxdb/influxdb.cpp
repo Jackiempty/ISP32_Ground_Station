@@ -9,8 +9,8 @@
 WiFiMulti wifiMulti;
 #endif
 
-#define WIFI_SSID "Room_0562"
-#define WIFI_PASSWORD "7150026666"
+#define WIFI_SSID "NCKU-Wifi"
+#define WIFI_PASSWORD "91Y1191Y11"
 #define channel 10        // WiFi Channel number between 1 and 13
 #define hide_SSID false   // To disable SSID broadcast -> SSID will not appear in a basic WiFi scan
 #define max_connection 2  // Maximum simultaneous connected clients on the AP
