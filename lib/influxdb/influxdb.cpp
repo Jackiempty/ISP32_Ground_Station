@@ -14,6 +14,7 @@ WiFiMulti wifiMulti;
 #define channel 10        // WiFi Channel number between 1 and 13
 #define hide_SSID false   // To disable SSID broadcast -> SSID will not appear in a basic WiFi scan
 #define max_connection 2  // Maximum simultaneous connected clients on the AP
+// #define wifi_init()  MODE##_init()
 
 #if MODE == AP
 #define wifi_init() AP_init()
@@ -41,7 +42,7 @@ static lora_data_t *lora_data;
 
 void influxdb_init() {
   lora_data = lora_data_fetch();
-  STA_init();
+  wifi_init();
 
   // Check server connection
   if (client.validateConnection()) {
