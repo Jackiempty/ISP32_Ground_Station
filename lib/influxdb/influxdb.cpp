@@ -25,8 +25,8 @@ WiFiMulti wifiMulti;
 static inline void AP_init();
 static inline void STA_init();
 
-#define INFLUXDB_URL "http://192.168.4.2:8086"
-#define INFLUXDB_TOKEN "uK_5CudAdTeRoci5K8fgyFwRMCX5VhJluAPu11tI6LrnBL86bwsr0DDQC4hxF8FJsCvFfv--IX3d-SIxd2EyJw=="
+#define INFLUXDB_URL "http://192.168.0.129:8086"
+#define INFLUXDB_TOKEN "LYKHs5H461Y2rvNP5DjCtG3Wf0L4OPoVEjCtpCE9HE3Pq2p7S2-OS2tBGHYKF1IlIvMdjvN40I0W1tD_skWqdw=="
 #define INFLUXDB_ORG "NCKU"
 #define INFLUXDB_BUCKET "Data"
 
@@ -42,13 +42,13 @@ static lora_data_t *lora_data;
 
 void influxdb_init() {
   lora_data = lora_data_fetch();
-  wifi_init();
+  STA_init();
 
   // Check server connection
   if (client.validateConnection()) {
-    printf("Connected to InfluxDB: %s\n", client.getServerUrl());
+    printf("Connected to InfluxDB: %s\n", (String)client.getServerUrl());
   } else {
-    printf("InfluxDB connection failed: %s\n", client.getLastErrorMessage());
+    printf("InfluxDB connection failed: %s\n", (String)client.getLastErrorMessage());
   }
 
   // Add tags to the data point
@@ -60,7 +60,6 @@ void influxdb_task(void *) {
   for (;;) {
     // Clear fields for reusing the point. Tags will remain the same as set above.
     sensor.clearFields();
-    // sin_wave.clearFields();
 
     // Store measured value into point
     // Report RSSI of currently connected network
@@ -87,7 +86,7 @@ void influxdb_task(void *) {
 
     // Write point (This is the line that write data to DB)
     if (!(client.writePoint(sensor))) {
-      printf("InfluxDB write failed: %s\n", client.getLastErrorMessage());
+      printf("InfluxDB write failed: %s\n", (String)client.getLastErrorMessage());
     }
     vTaskDelay(pdMS_TO_TICKS(500));
   }
@@ -115,5 +114,5 @@ static inline void AP_init() {
   printf("\n[*] Creating AP\n");
   WiFi.mode(WIFI_AP);
   WiFi.softAP(WIFI_SSID, WIFI_PASSWORD, channel, hide_SSID, max_connection);
-  printf("[+] AP Created with IP Gateway %s\n", std::to_string(WiFi.softAPIP()));
+  printf("[+] AP Created with IP Gateway %s\n", (String)WiFi.softAPIP());
 }
