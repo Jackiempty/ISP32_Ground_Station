@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+
 #include "Arduino.h"
 #include "ra01s.h"
 
@@ -36,8 +37,8 @@ typedef struct {
   float heading, pitch, roll;
 } lora_data_t;
 
-void recv_init();
-void recv_task(SX126x *);
+void recv_init(SX126x *);
+void recv_task(void *);
 lora_data_t *lora_data_fetch();
 void recv_print();
 

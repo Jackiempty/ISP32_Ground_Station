@@ -8,12 +8,13 @@
 #include <InfluxDbCloud.h>
 #include <WiFi.h>
 #include <WiFiMulti.h>
+
 #include <string>
 
 #include "ra01s.h"
 #include "recv.h"
 
 void influxdb_init();
-void influxdb_task();
+void influxdb_task(void *);
 
 #endif

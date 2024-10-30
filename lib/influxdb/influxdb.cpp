@@ -1,5 +1,7 @@
 #include "influxdb.h"
 
+#include <string.h>
+
 #include "recv.h"
 
 #if defined(ESP32)
@@ -9,10 +11,15 @@ WiFiMulti wifiMulti;
 
 #define WIFI_SSID "Room_0562"
 #define WIFI_PASSWORD "7150026666"
-#define channel 10               // WiFi Channel number between 1 and 13
-#define hide_SSID false         // To disable SSID broadcast -> SSID will not appear in a basic WiFi scan
-#define max_connection 2         // Maximum simultaneous connected clients on the AP
-#define wifi_init() MODE##_init()
+#define channel 10        // WiFi Channel number between 1 and 13
+#define hide_SSID false   // To disable SSID broadcast -> SSID will not appear in a basic WiFi scan
+#define max_connection 2  // Maximum simultaneous connected clients on the AP
+
+#if MODE == AP
+#define wifi_init() AP_init()
+#elif MODE == STA
+#define wifi_init() STA_init()
+#endif
 
 static inline void AP_init();
 static inline void STA_init();
@@ -48,41 +55,41 @@ void influxdb_init() {
   sensor.addTag("SSID", WiFi.SSID());
 }
 
-void influxdb_task() {
-  // Clear fields for reusing the point. Tags will remain the same as set above.
-  sensor.clearFields();
-  // sin_wave.clearFields();
+void influxdb_task(void *) {
+  for (;;) {
+    // Clear fields for reusing the point. Tags will remain the same as set above.
+    sensor.clearFields();
+    // sin_wave.clearFields();
 
-  // Store measured value into point
-  // Report RSSI of currently connected network
-  sensor.addField("rssi", WiFi.RSSI());
-  sensor.addField("state", lora_data->state);
-  sensor.addField("systick", lora_data->systick);
-  sensor.addField("pressure_altitude", lora_data->pressure_altitude);
-  sensor.addField("pressure_velocity", lora_data->pressure_velocity);
-  sensor.addField("longitude", lora_data->longitude);
-  sensor.addField("latitude", lora_data->latitude);
-  sensor.addField("gps_altitude", lora_data->gps_altitude);
-  sensor.addField("acceleration.x", lora_data->acceleration.x);
-  sensor.addField("acceleration.y", lora_data->acceleration.y);
-  sensor.addField("acceleration.z", lora_data->acceleration.z);
-  sensor.addField("gyro.x", lora_data->gyro.x);
-  sensor.addField("gyro.y", lora_data->gyro.y);
-  sensor.addField("gyro.z", lora_data->gyro.z);
-  sensor.addField("roll", lora_data->roll);
-  sensor.addField("pitch", lora_data->pitch);
-  sensor.addField("heading", lora_data->heading);
+    // Store measured value into point
+    // Report RSSI of currently connected network
+    sensor.addField("rssi", WiFi.RSSI());
+    sensor.addField("state", lora_data->state);
+    sensor.addField("systick", lora_data->systick);
+    sensor.addField("pressure_altitude", lora_data->pressure_altitude);
+    sensor.addField("pressure_velocity", lora_data->pressure_velocity);
+    sensor.addField("longitude", lora_data->longitude);
+    sensor.addField("latitude", lora_data->latitude);
+    sensor.addField("gps_altitude", lora_data->gps_altitude);
+    sensor.addField("acceleration.x", lora_data->acceleration.x);
+    sensor.addField("acceleration.y", lora_data->acceleration.y);
+    sensor.addField("acceleration.z", lora_data->acceleration.z);
+    sensor.addField("gyro.x", lora_data->gyro.x);
+    sensor.addField("gyro.y", lora_data->gyro.y);
+    sensor.addField("gyro.z", lora_data->gyro.z);
+    sensor.addField("roll", lora_data->roll);
+    sensor.addField("pitch", lora_data->pitch);
+    sensor.addField("heading", lora_data->heading);
 
-  // Print what are we exactly writing
-  printf("Writing: %s\n", sensor.toLineProtocol());
+    // Print what are we exactly writing
+    // printf("Writing: %s\n", sensor.toLineProtocol());
 
-  // Write point (This is the line that write data to DB)
-  if (!(client.writePoint(sensor))) {
-    printf("InfluxDB write failed: %s\n", client.getLastErrorMessage());
+    // Write point (This is the line that write data to DB)
+    if (!(client.writePoint(sensor))) {
+      printf("InfluxDB write failed: %s\n", client.getLastErrorMessage());
+    }
+    vTaskDelay(pdMS_TO_TICKS(500));
   }
-
-  printf("==========\n");
-
 }
 
 static inline void STA_init() {
