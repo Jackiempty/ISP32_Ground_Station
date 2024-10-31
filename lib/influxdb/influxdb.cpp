@@ -16,10 +16,10 @@ WiFiMulti wifiMulti;
 #define max_connection 2  // Maximum simultaneous connected clients on the AP
 // #define wifi_init()  MODE##_init()
 
-#if MODE == AP
-#define wifi_init() AP_init()
-#elif MODE == STA
-#define wifi_init() STA_init()
+#if MODE == 0
+  #define wifi_init() AP_init()
+#elif MODE == 1
+  #define wifi_init() STA_init()
 #endif
 
 static inline void AP_init();
@@ -42,7 +42,7 @@ static lora_data_t *lora_data;
 
 void influxdb_init() {
   lora_data = lora_data_fetch();
-  STA_init();
+  wifi_init();
 
   // Check server connection
   if (client.validateConnection()) {

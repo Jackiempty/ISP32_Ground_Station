@@ -1,8 +1,7 @@
 #ifndef _INFLUXDB_
 #define _INFLUXDB_
 
-#define MODE AP
-// #define MODE STA
+#define MODE 1  //   0: AP, 1: STA
 
 #include <InfluxDbClient.h>
 #include <InfluxDbCloud.h>
