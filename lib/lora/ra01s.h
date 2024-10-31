@@ -1,38 +1,9 @@
 #ifndef _RA01S_H
 #define _RA01S_H
 
-/*
-  source: https://github.com/nopnop2002/Arduino-LoRa-Ra01S/tree/main
-*/
+#include "recv.h"
 
-#define RF_FREQUENCY 433000000  // Hz  center frequency
-// #define RF_FREQUENCY 866000000  // Hz  center frequency
-// #define RF_FREQUENCY 915000000  // Hz  center frequency
-#define TX_OUTPUT_POWER 22  // dBm tx output power
-#define LORA_BANDWIDTH 4    // bandwidth
-                            // 2: 31.25Khz
-                            // 3: 62.5Khz
-                            // 4: 125Khz
-                            // 5: 250KHZ
-                            // 6: 500Khz
-#define LORA_SPREADING_FACTOR 7  // spreading factor [SF5..SF12]
-#define LORA_CODINGRATE 1   // [1: 4/5,
-                            //  2: 4/6,
-                            //  3: 4/7,
-                            //  4: 4/8]
-
-#define LORA_PREAMBLE_LENGTH 8  // Same for Tx and Rx
-#define LORA_PAYLOADLENGTH 0  // 0: Variable length packet (explicit header)
-                              // 1..255  Fixed length packet (implicit header)
-                              
-#define CONFIG_LORA_MOSI_GPIO 35
-#define CONFIG_LORA_MISO_GPIO 37
-#define CONFIG_LORA_SCK_GPIO 36
-#define CONFIG_LORA_NSS_GPIO 21
-#define CONFIG_RST_GPIO 41
-#define CONFIG_BUSY_GPIO 40
-#define CONFIG_TXEN_GPIO 0
-#define CONFIG_RXEN_GPIO 0
+/* source: https://github.com/nopnop2002/Arduino-LoRa-Ra01S/tree/main */
 
 // return values
 #define ERR_NONE 0

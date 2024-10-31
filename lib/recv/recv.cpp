@@ -6,7 +6,12 @@
 #define TAG "RECV"
 #define RECV_LEN 255
 
-static SX126x *Lora;
+static SX126x lora(CONFIG_LORA_NSS_GPIO,  // Port-Pin Output: SPI select
+                   CONFIG_RST_GPIO,       // Port-Pin Output: Reset
+                   CONFIG_BUSY_GPIO,      // Port-Pin Input:  Busy
+                   CONFIG_TXEN_GPIO,      // Port-Pin Output: TXEN
+                   CONFIG_RXEN_GPIO       // Port-Pin Output: RXEN
+);
 static lora_data_t lora_data;
 static uint8_t data[RECV_LEN];
 static size_t len;
@@ -25,10 +30,12 @@ static float *heading;
 static float *pitch;
 static float *roll;
 
-void recv_init(SX126x *lora) {
-  led_status = 0;
+static inline void lora_init();
 
-  Lora = lora;
+void recv_init() {
+  lora_init();
+
+  led_status = 0;
   state = &lora_data.state;
   systick = &lora_data.systick;
   pressure_altitude = &lora_data.pressure_altitude;
@@ -47,7 +54,7 @@ void recv_init(SX126x *lora) {
 
 void recv_task(void *) {
   for (;;) {
-    if ((len = Lora->Receive(&data[0], RECV_LEN)) > 0) {
+    if ((len = lora.Receive(&data[0], RECV_LEN)) > 0) {
       uint8_t *logger_ptr = data;
 
       memcpy(state, logger_ptr, sizeof(fsm_state_e));
@@ -117,4 +124,20 @@ void recv_print() {
   printf("imu_gyro: x: %f, y: %f, z: %f\n", gyro->x, gyro->y, gyro->z);
   printf("imu_position: roll: %f, pitch: %f, heading: %f\n", *roll, *pitch, *heading);
   printf("----------------------------------------------\n");
+}
+
+static inline void lora_init() {
+printf("Enable TCXO\n");
+int16_t ret = lora.begin(RF_FREQUENCY,     // frequency in Hz
+                          TX_OUTPUT_POWER,  // tx power in dBm
+                          3.3,              // use TCXO
+                          true);            // use TCXO                          
+if (ret != ERR_NONE) while (1) {delay(1);}
+lora.LoRaConfig(LORA_SPREADING_FACTOR,
+                LORA_BANDWIDTH,
+                LORA_CODINGRATE,
+                LORA_PREAMBLE_LENGTH,
+                LORA_PAYLOADLENGTH,
+                true,                 //crcOn
+                false);               //invertIrq
 }
