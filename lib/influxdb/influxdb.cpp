@@ -1,9 +1,5 @@
 #include "influxdb.h"
 
-#include <string.h>
-
-#include "recv.h"
-
 #if defined(ESP32)
 #define DEVICE "ESP32"
 WiFiMulti wifiMulti;

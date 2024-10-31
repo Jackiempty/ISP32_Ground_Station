@@ -3,7 +3,6 @@
 #include <InfluxDbCloud.h>
 #include <WiFi.h>
 #include <influxdb.h>
-#include <ra01s.h>
 #include <recv.h>
 
 void setup() {
