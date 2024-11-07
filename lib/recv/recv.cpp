@@ -120,6 +120,7 @@ lora_data_t *lora_data_fetch() { return &lora_data; }
 
 void recv_print() {
   printf("run_time: %d\n", *systick);
+  printf("lora_rssi: %d\n", *rssi);
   printf("bmp280_altitude: %f\n", *pressure_altitude);
   printf("bmp280_velocity: %f\n", *pressure_velocity);
   printf("gps_longitude: %ld\n", *longitude);
