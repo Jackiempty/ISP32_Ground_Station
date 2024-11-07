@@ -64,6 +64,7 @@ typedef struct {
   int32_t longitude;
   float gps_altitude;
   float heading, pitch, roll;
+  int8_t rssi, snr;
 } lora_data_t;
 
 void recv_init();

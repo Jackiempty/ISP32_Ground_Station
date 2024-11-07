@@ -29,6 +29,8 @@ static float *gps_altitude;
 static float *heading;
 static float *pitch;
 static float *roll;
+static int8_t *rssi;
+static int8_t *snr;
 
 static inline void lora_init();
 
@@ -48,6 +50,8 @@ void recv_init() {
   heading = &lora_data.heading;
   pitch = &lora_data.pitch;
   roll = &lora_data.roll;
+  rssi = &lora_data.rssi;
+  snr = &lora_data.snr;
 
   pinMode(1, OUTPUT);
 }
@@ -107,6 +111,7 @@ void recv_task(void *) {
         digitalWrite(1, led_status);
         led_status = !led_status;
       }
+      lora.GetPacketStatus(rssi, snr);
     }
   }
 }

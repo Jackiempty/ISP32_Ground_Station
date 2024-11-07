@@ -60,6 +60,7 @@ void influxdb_task(void *) {
     // Store measured value into point
     // Report RSSI of currently connected network
     sensor.addField("rssi", WiFi.RSSI());
+    sensor.addField("lora_rssi", lora_data->rssi);
     sensor.addField("state", lora_data->state);
     sensor.addField("systick", lora_data->systick);
     sensor.addField("pressure_altitude", lora_data->pressure_altitude);
