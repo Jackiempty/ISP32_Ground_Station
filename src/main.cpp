@@ -11,11 +11,12 @@ void setup() {
   printf("Start init.......\n");
   recv_init();
   influxdb_init();
+  disableCore0WDT();
   printf("------------ Finish init ------------\n");
   printf("I am a ground receiver board!\n");
 
-  xTaskCreate(recv_task, "recv_task", 4096, NULL, 5, NULL);
-  xTaskCreate(influxdb_task, "influxdb_task", 4096, NULL, 4, NULL);
+  xTaskCreatePinnedToCore(recv_task, "recv_task", 4096, NULL, 5, NULL, 0);
+  xTaskCreatePinnedToCore(influxdb_task, "influxdb_task", 4096, NULL, 4, NULL, 1);
 }
 
 void loop() {
