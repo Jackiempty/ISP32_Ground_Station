@@ -64,38 +64,38 @@ void recv_task(void *) {
       memcpy(state, logger_ptr, sizeof(fsm_state_e));
       logger_ptr += sizeof(fsm_state_e);
 
-      memcpy(systick, logger_ptr, sizeof(systick));
-      logger_ptr += sizeof(systick);
+      memcpy(systick, logger_ptr, sizeof(*systick));
+      logger_ptr += sizeof(*systick);
 
-      memcpy(pressure_altitude, logger_ptr, sizeof(pressure_altitude));
-      logger_ptr += sizeof(pressure_altitude);
+      memcpy(pressure_altitude, logger_ptr, sizeof(*pressure_altitude));
+      logger_ptr += sizeof(*pressure_altitude);
 
-      memcpy(pressure_velocity, logger_ptr, sizeof(pressure_velocity));
-      logger_ptr += sizeof(pressure_velocity);
+      memcpy(pressure_velocity, logger_ptr, sizeof(*pressure_velocity));
+      logger_ptr += sizeof(*pressure_velocity);
 
-      memcpy(longitude, logger_ptr, sizeof(longitude));
-      logger_ptr += sizeof(longitude);
+      memcpy(acceleration, logger_ptr, sizeof(*acceleration));
+      logger_ptr += sizeof(*acceleration);
 
-      memcpy(latitude, logger_ptr, sizeof(latitude));
-      logger_ptr += sizeof(latitude);
+      memcpy(gyro, logger_ptr, sizeof(*gyro));
+      logger_ptr += sizeof(*gyro);
 
-      memcpy(gps_altitude, logger_ptr, sizeof(gps_altitude));
-      logger_ptr += sizeof(gps_altitude);
+      memcpy(longitude, logger_ptr, sizeof(*longitude));
+      logger_ptr += sizeof(*longitude);
 
-      memcpy(acceleration, logger_ptr, sizeof(acceleration));
-      logger_ptr += sizeof(acceleration);
+      memcpy(latitude, logger_ptr, sizeof(*latitude));
+      logger_ptr += sizeof(*latitude);
 
-      memcpy(gyro, logger_ptr, sizeof(gyro));
-      logger_ptr += sizeof(gyro);
+      memcpy(gps_altitude, logger_ptr, sizeof(*gps_altitude));
+      logger_ptr += sizeof(*gps_altitude);
 
-      memcpy(roll, logger_ptr, sizeof(roll));
-      logger_ptr += sizeof(roll);
+      memcpy(roll, logger_ptr, sizeof(*roll));
+      logger_ptr += sizeof(*roll);
 
-      memcpy(pitch, logger_ptr, sizeof(pitch));
-      logger_ptr += sizeof(pitch);
+      memcpy(pitch, logger_ptr, sizeof(*pitch));
+      logger_ptr += sizeof(*pitch);
 
-      memcpy(heading, logger_ptr, sizeof(heading));
-      logger_ptr += sizeof(heading);
+      memcpy(heading, logger_ptr, sizeof(*heading));
+      logger_ptr += sizeof(*heading);
 
       uint8_t ecc = 0;
       for (size_t i = 0; i < logger_ptr - &data[0]; i++) {
@@ -106,6 +106,7 @@ void recv_task(void *) {
       memcpy(&tx_ecc, logger_ptr, sizeof(tx_ecc));
       logger_ptr += sizeof(tx_ecc);
 
+      // printf("ecc_error: %d\n", (tx_ecc == ecc));
       if (tx_ecc == ecc) {
         recv_print();
         digitalWrite(1, led_status);
